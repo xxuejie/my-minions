@@ -12,6 +12,11 @@
         name: aws-delete-keypair
       tags: keydelete
 
+    - name: Remove Local Keypair File
+      ansible.builtin.file:
+        path: "{{ aws_keypair_path }}"
+        state: absent
+
     - name: Delete Security Group
       include_role:
         name: aws-delete-sg
