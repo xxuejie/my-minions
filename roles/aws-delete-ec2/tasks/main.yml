@@ -7,10 +7,6 @@
       instance-state-name: ["running", "stopped", "stopping", "starting", "pending"]
   register: ec2_collection
 
-- name: Debug instance info
-  debug:
-    msg: "Info: {{ ec2_collection }}"
-
 - name: Terminate ec2 instances
   ignore_errors: True
   amazon.aws.ec2_instance:

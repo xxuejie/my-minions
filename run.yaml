@@ -35,6 +35,17 @@
         chdir: /home/ubuntu/suite
     - name: Fetch rundata
       ansible.builtin.fetch:
-        src: /home/ubuntu/suite/rundata
-        dest: data/{{ inventory_hostname }}
+        src: /home/ubuntu/suite/rundata.tar.gz
+        dest: data/{{ inventory_hostname }}.tar.gz
         flat: yes
+
+- name: Reorganize extracted benchmark data
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  tasks:
+    - name: Extract benchmark data
+      ansible.builtin.shell:
+        cmd: tar xzf "{{ item.ip }}.tar.gz" && mv rundata "{{ item.name }}" && rm "{{ item.ip }}.tar.gz"
+        chdir: data
+      loop: "{{ new_ec2_list }}"

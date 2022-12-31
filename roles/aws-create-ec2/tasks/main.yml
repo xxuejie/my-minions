@@ -24,18 +24,18 @@
 
 - name: Collect newly created ec2 in a list
   ansible.builtin.set_fact:
-    new_ec2_list: "{{ new_ec2_list + [ item.instances[0].public_ip_address] }}"
+    new_ec2_list: "{{ new_ec2_list + [ { 'ip': item.instances[0].public_ip_address, 'name': item.instances[0].tags.name } ] }}"
   when: item.instances[0].public_ip_address is defined
   loop: "{{ created_ec2.results }}"
 
 - name: Status
   ansible.builtin.debug:
-    msg: "{{ item }} : Waiting for instances online..."
+    msg: "{{ item.ip }} : Waiting for instances online..."
   with_items: "{{ new_ec2_list }}"
 
 - name: Wait for SSH
   ansible.builtin.wait_for:
-    host: "{{ item }}"
+    host: "{{ item.ip }}"
     port: 22
     delay: 3
     connect_timeout: 180
@@ -45,7 +45,7 @@
 
 - name: Add ec2 instances to a host group
   ansible.builtin.add_host:
-    name: "{{ item }}" 
+    name: "{{ item.ip }}"
     groups: "{{ ec2_inventory_group }}"
     ansible_ssh_extra_args: " -o StrictHostKeyChecking=no -o ServerAliveInterval=15 "
     ansible_ssh_private_key_file: "{{ aws_keypair_path }}"
