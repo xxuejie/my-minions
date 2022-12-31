@@ -1,0 +1,23 @@
+---
+- name: Get VPC Details
+  amazon.aws.ec2_vpc_net_info:
+    region: "{{ aws_region }}"
+  register: aws_vpc_details
+
+- name: Collect VPC ID
+  ansible.builtin.set_fact:
+    aws_vpc_id: "{{ aws_vpc_details.vpcs[0].vpc_id }}"
+
+- name: Fetch VPC Subnets
+  amazon.aws.ec2_vpc_subnet_info:
+    region: "{{ aws_region }}"
+  register: aws_vpc_subnet_details
+
+- name: Initialize list for VPC subnets
+  ansible.builtin.set_fact:
+    vpc_subnet_list: []
+
+- name: Collect VPC Subnets
+  ansible.builtin.set_fact:
+    vpc_subnet_list: "{{ vpc_subnet_list + [ item.subnet_id ] }}"
+  loop: "{{ aws_vpc_subnet_details.subnets }}"

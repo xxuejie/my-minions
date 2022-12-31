@@ -1,0 +1,10 @@
+---
+- name: Create key pair
+  amazon.aws.ec2_key:
+    name: "{{ aws_keypair_name }}"
+    region: "{{ aws_region }}"
+  register: ec2_key_result
+
+- name: Save key pair
+  copy: content="{{ ec2_key_result.key.private_key }}" dest="{{ aws_keypair_path }}" mode=0600
+  when: ec2_key_result.changed

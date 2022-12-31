@@ -1,0 +1,18 @@
+- name: Destroy AWS Infrastructure
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  tasks:
+    - name: Delete ec2 instances
+      include_role:
+        name: aws-delete-ec2
+ 
+    - name: Delete Keypair
+      include_role:
+        name: aws-delete-keypair
+      tags: keydelete
+
+    - name: Delete Security Group
+      include_role:
+        name: aws-delete-sg
+      tags: sgdelete

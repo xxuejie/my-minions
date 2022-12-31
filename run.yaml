@@ -1,0 +1,40 @@
+- name: Provision AWS Infrastructure
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  tasks:
+    - name: Fetch VPC ID
+      include_role:
+        name: aws-get-vpc-details
+
+    - name: Create Security Group
+      include_role:
+        name: aws-create-sg
+
+    - name: Create Keypair
+      include_role:
+        name: aws-create-keypair
+
+    - name: Create ec2 instances
+      include_role:
+        name: aws-create-ec2
+
+- name: Start benchmarks on each EC2 instance
+  # TODO: Can we use vars for this?
+  hosts: myminionsmachines
+  remote_user: ubuntu
+  tasks:
+    - name: Clone benchmark suite
+      ansible.builtin.git:
+        repo: "{{ benchmark_suite_repo }}"
+        version: "{{ benchmark_suite_version }}"
+        dest: /home/ubuntu/suite
+    - name: Run benchmark suite
+      ansible.builtin.shell:
+        cmd: ./run.sh "{{ benchmark_target_repo }}" "{{ benchmark_target_version }}"
+        chdir: /home/ubuntu/suite
+    - name: Fetch rundata
+      ansible.builtin.fetch:
+        src: /home/ubuntu/suite/rundata
+        dest: data/{{ inventory_hostname }}
+        flat: yes

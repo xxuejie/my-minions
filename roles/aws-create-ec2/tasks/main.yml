@@ -1,0 +1,52 @@
+---
+- name: Launching EC2 instances
+  amazon.aws.ec2_instance:
+    key_name: "{{ aws_keypair_name }}"
+    security_group: "{{ aws_security_group }}"
+    instance_type: "{{ item.instance_type }}"
+    image_id: "{{ item.image }}"
+    state: running
+    wait: true
+    region: "{{ aws_region }}"
+    tags:
+      project: "{{ ec2_project_tag }}"
+      name: "{{ item.name }}"
+    detailed_monitoring: no
+    vpc_subnet_id: "{{ vpc_subnet_list | random }}"
+    network:
+      assign_public_ip: yes
+  loop: "{{ ec2_instances }}"
+  register: created_ec2
+
+- name: Create a temp list for new ec2
+  ansible.builtin.set_fact:
+    new_ec2_list: []
+
+- name: Collect newly created ec2 in a list
+  ansible.builtin.set_fact:
+    new_ec2_list: "{{ new_ec2_list + [ item.instances[0].public_ip_address] }}"
+  when: item.instances[0].public_ip_address is defined
+  loop: "{{ created_ec2.results }}"
+
+- name: Status
+  ansible.builtin.debug:
+    msg: "{{ item }} : Waiting for instances online..."
+  with_items: "{{ new_ec2_list }}"
+
+- name: Wait for SSH
+  ansible.builtin.wait_for:
+    host: "{{ item }}"
+    port: 22
+    delay: 3
+    connect_timeout: 180
+    sleep: 5
+    state: started
+  with_items: "{{ new_ec2_list }}"
+
+- name: Add ec2 instances to a host group
+  ansible.builtin.add_host:
+    name: "{{ item }}" 
+    groups: "{{ ec2_inventory_group }}"
+    ansible_ssh_extra_args: " -o StrictHostKeyChecking=no -o ServerAliveInterval=15 "
+    ansible_ssh_private_key_file: "{{ aws_keypair_path }}"
+  loop: "{{ new_ec2_list }}"

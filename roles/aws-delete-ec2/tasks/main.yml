@@ -1,0 +1,22 @@
+---
+- name: Collect launched instances
+  amazon.aws.ec2_instance_info:
+    region: "{{ aws_region }}"
+    filters:
+      "tag:project": "{{ ec2_project_tag }}"
+      instance-state-name: ["running", "stopped", "stopping", "starting", "pending"]
+  register: ec2_collection
+
+- name: Debug instance info
+  debug:
+    msg: "Info: {{ ec2_collection }}"
+
+- name: Terminate ec2 instances
+  ignore_errors: True
+  amazon.aws.ec2_instance:
+    region: "{{ aws_region }}"
+    state: absent
+    instance_ids: "{{ item.instance_id }}"
+    wait: yes
+  loop: "{{ ec2_collection.instances }}"
+  register: deleted_ec2
