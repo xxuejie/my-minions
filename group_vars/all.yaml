@@ -8,10 +8,13 @@ ec2_inventory_group: "myminionsmachines"
 
 ec2_instances:
   - name: graviton2
-    instance_type: t4g.small
+    instance_type: m6g.large
     image: ami-0c706aa84dc076112
-  - name: intel_xeon
-    instance_type: t3.small
+  - name: intel_ice_lake_8375c
+    instance_type: m6i.large
+    image: ami-0590f3a1742b17914
+  - name: amd_epyc_7r13
+    instance_type: m6a.large
     image: ami-0590f3a1742b17914
 
 benchmark_suite_repo: "https://github.com/xxuejie/ckb-vm-sysbench"

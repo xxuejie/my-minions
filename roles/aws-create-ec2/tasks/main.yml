@@ -10,7 +10,7 @@
     region: "{{ aws_region }}"
     tags:
       project: "{{ ec2_project_tag }}"
-      name: "{{ item.name }}"
+      Name: "{{ item.name }}"
     detailed_monitoring: no
     vpc_subnet_id: "{{ vpc_subnet_list | random }}"
     network:
@@ -24,7 +24,7 @@
 
 - name: Collect newly created ec2 in a list
   ansible.builtin.set_fact:
-    new_ec2_list: "{{ new_ec2_list + [ { 'ip': item.instances[0].public_ip_address, 'name': item.instances[0].tags.name } ] }}"
+    new_ec2_list: "{{ new_ec2_list + [ { 'ip': item.instances[0].public_ip_address, 'name': item.instances[0].tags.Name } ] }}"
   when: item.instances[0].public_ip_address is defined
   loop: "{{ created_ec2.results }}"
 
